@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import Header from '../../components/Header';
 import SubHeader from '../../components/SubHeader';
 import Tile from '../../components/Tile';
+import Footer from '../../components/Footer';
 
 import '../../styles.css';
 import { getSeries } from '../../api';
@@ -32,6 +33,8 @@ function Series(props) {
                 {isLoading && <p>Loading...</p>}
                 {!isError && shows.map((show, index) => <Tile image={show.images['Poster Art'].url} title={show.title} key={index} to="/series" />)}
             </div>
+
+            <Footer />
         </>
     );
 }

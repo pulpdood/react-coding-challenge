@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import Header from '../../components/Header';
 import SubHeader from '../../components/SubHeader';
 import Tile from '../../components/Tile';
+import Footer from '../../components/Footer';
 
 import '../../styles.css';
 import { getMovies } from '../../api';
@@ -23,6 +24,7 @@ function Movies(props) {
                     <Tile image={show.images['Poster Art'].url} title={show.title} key={index} to="/movies" />
                 ))}
             </div>
+            <Footer />
         </>
     );
 }

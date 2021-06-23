@@ -33796,7 +33796,96 @@ function SubHeader(props) {
 
 var _default = SubHeader;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","../styles.css":"styles.css"}],"../assets/placeholder.png":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","../styles.css":"styles.css"}],"../assets/social/facebook-white.svg":[function(require,module,exports) {
+module.exports = "/facebook-white.21482458.svg";
+},{}],"../assets/social/instagram-white.svg":[function(require,module,exports) {
+module.exports = "/instagram-white.7c9ae2c5.svg";
+},{}],"../assets/social/twitter-white.svg":[function(require,module,exports) {
+module.exports = "/twitter-white.b1c9a127.svg";
+},{}],"../assets/store/app-store.svg":[function(require,module,exports) {
+module.exports = "/app-store.3bfb8c13.svg";
+},{}],"../assets/store/play-store.svg":[function(require,module,exports) {
+module.exports = "/play-store.962ea8cb.svg";
+},{}],"../assets/store/windows-store.svg":[function(require,module,exports) {
+module.exports = "/windows-store.7e0c21b1.svg";
+},{}],"components/Footer.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(require("react"));
+
+var _reactRouterDom = require("react-router-dom");
+
+require("../styles.css");
+
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+var links = [{
+  to: '/',
+  text: 'Home'
+}, {
+  to: '/',
+  text: 'Terms and Conditions'
+}, {
+  to: '/',
+  text: 'Privacy Policy'
+}, {
+  to: '/',
+  text: 'Collection Statement'
+}, {
+  to: '/',
+  text: 'Help'
+}, {
+  to: '/',
+  text: 'Manage Account'
+}];
+
+function Footer(props) {
+  return /*#__PURE__*/_react.default.createElement("footer", {
+    className: "footer"
+  }, /*#__PURE__*/_react.default.createElement("div", null, links.map(function (link, index) {
+    return /*#__PURE__*/_react.default.createElement(_react.Fragment, {
+      key: index
+    }, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
+      to: link.to,
+      className: "footerLink"
+    }, link.text), index < links.length - 1 && /*#__PURE__*/_react.default.createElement("span", {
+      style: {
+        color: '#ffffff'
+      }
+    }, "|"));
+  }), /*#__PURE__*/_react.default.createElement("div", null, "Copyright \xA9 2016 DEMO Streaming. All Rights Reserved."), /*#__PURE__*/_react.default.createElement("img", {
+    className: "socialIcon",
+    src: require('../../assets/social/facebook-white.svg')
+  }), /*#__PURE__*/_react.default.createElement("img", {
+    className: "socialIcon",
+    src: require('../../assets/social/instagram-white.svg')
+  }), /*#__PURE__*/_react.default.createElement("img", {
+    className: "socialIcon",
+    src: require('../../assets/social/twitter-white.svg')
+  }), /*#__PURE__*/_react.default.createElement("span", {
+    className: "storeIcons"
+  }, /*#__PURE__*/_react.default.createElement("img", {
+    className: "storeIcon",
+    src: require('../../assets/store/app-store.svg')
+  }), /*#__PURE__*/_react.default.createElement("img", {
+    className: "storeIcon",
+    src: require('../../assets/store/play-store.svg')
+  }), /*#__PURE__*/_react.default.createElement("img", {
+    className: "storeIcon",
+    src: require('../../assets/store/windows-store.svg')
+  }))));
+}
+
+var _default = Footer;
+exports.default = _default;
+},{"react":"../node_modules/react/index.js","react-router-dom":"../node_modules/react-router-dom/esm/react-router-dom.js","../styles.css":"styles.css","../../assets/social/facebook-white.svg":"../assets/social/facebook-white.svg","../../assets/social/instagram-white.svg":"../assets/social/instagram-white.svg","../../assets/social/twitter-white.svg":"../assets/social/twitter-white.svg","../../assets/store/app-store.svg":"../assets/store/app-store.svg","../../assets/store/play-store.svg":"../assets/store/play-store.svg","../../assets/store/windows-store.svg":"../assets/store/windows-store.svg"}],"../assets/placeholder.png":[function(require,module,exports) {
 module.exports = "/placeholder.e41316ff.png";
 },{}],"components/Tile.js":[function(require,module,exports) {
 "use strict";
@@ -33852,6 +33941,8 @@ var _Header = _interopRequireDefault(require("../../components/Header"));
 
 var _SubHeader = _interopRequireDefault(require("../../components/SubHeader"));
 
+var _Footer = _interopRequireDefault(require("../../components/Footer"));
+
 var _Tile = _interopRequireDefault(require("../../components/Tile"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -33869,12 +33960,12 @@ function Home(props) {
     overlayText: "MOVIES",
     title: "Popular Movies",
     to: "/movies"
-  })));
+  })), /*#__PURE__*/_react.default.createElement(_Footer.default, null));
 }
 
 var _default = Home;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js","../../components/Tile":"components/Tile.js"}],"api/index.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js","../../components/Footer":"components/Footer.js","../../components/Tile":"components/Tile.js"}],"api/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -33970,6 +34061,8 @@ var _SubHeader = _interopRequireDefault(require("../../components/SubHeader"));
 
 var _Tile = _interopRequireDefault(require("../../components/Tile"));
 
+var _Footer = _interopRequireDefault(require("../../components/Footer"));
+
 require("../../styles.css");
 
 var _api = require("../../api");
@@ -34033,12 +34126,12 @@ function Movies(props) {
       key: index,
       to: "/movies"
     });
-  })));
+  })), /*#__PURE__*/_react.default.createElement(_Footer.default, null));
 }
 
 var _default = Movies;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js","../../components/Tile":"components/Tile.js","../../styles.css":"styles.css","../../api":"api/index.js"}],"screens/Series/index.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js","../../components/Tile":"components/Tile.js","../../components/Footer":"components/Footer.js","../../styles.css":"styles.css","../../api":"api/index.js"}],"screens/Series/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -34053,6 +34146,8 @@ var _Header = _interopRequireDefault(require("../../components/Header"));
 var _SubHeader = _interopRequireDefault(require("../../components/SubHeader"));
 
 var _Tile = _interopRequireDefault(require("../../components/Tile"));
+
+var _Footer = _interopRequireDefault(require("../../components/Footer"));
 
 require("../../styles.css");
 
@@ -34140,12 +34235,12 @@ function Series(props) {
       key: index,
       to: "/series"
     });
-  })));
+  })), /*#__PURE__*/_react.default.createElement(_Footer.default, null));
 }
 
 var _default = Series;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js","../../components/Tile":"components/Tile.js","../../styles.css":"styles.css","../../api":"api/index.js"}],"../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js","../../components/Tile":"components/Tile.js","../../components/Footer":"components/Footer.js","../../styles.css":"styles.css","../../api":"api/index.js"}],"../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
 var define;
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
