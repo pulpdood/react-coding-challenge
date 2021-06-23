@@ -9,20 +9,28 @@ import '../../styles.css';
 import { getMovies } from '../../api';
 
 function Movies(props) {
+    const [isLoading, setIsLoading] = React.useState(true);
+    const [isError, setIsError] = React.useState(false);
     const [shows, setShows] = React.useState([]);
 
     useEffect(async () => {
-        setShows(await getMovies());
+        try {
+            setShows(await getMovies());
+        } catch {
+            setIsError(true);
+        }
+
+        setIsLoading(false);
     }, []);
 
     return (
         <>
             <Header />
             <SubHeader programType="Movies" />
+            {isError && <p className="content">Oops, something went wrong...</p>}
             <div className="content tiles">
-                {shows.map((show, index) => (
-                    <Tile image={show.images['Poster Art'].url} title={show.title} key={index} to="/movies" />
-                ))}
+                {isLoading && <p>Loading...</p>}
+                {!isError && shows.map((show, index) => <Tile image={show.images['Poster Art'].url} title={show.title} key={index} to="/movies" />)}
             </div>
             <Footer />
         </>

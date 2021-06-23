@@ -34093,36 +34093,59 @@ function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Sy
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 function Movies(props) {
-  var _React$useState = _react.default.useState([]),
+  var _React$useState = _react.default.useState(true),
       _React$useState2 = _slicedToArray(_React$useState, 2),
-      shows = _React$useState2[0],
-      setShows = _React$useState2[1];
+      isLoading = _React$useState2[0],
+      setIsLoading = _React$useState2[1];
+
+  var _React$useState3 = _react.default.useState(false),
+      _React$useState4 = _slicedToArray(_React$useState3, 2),
+      isError = _React$useState4[0],
+      setIsError = _React$useState4[1];
+
+  var _React$useState5 = _react.default.useState([]),
+      _React$useState6 = _slicedToArray(_React$useState5, 2),
+      shows = _React$useState6[0],
+      setShows = _React$useState6[1];
 
   (0, _react.useEffect)( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            _context.prev = 0;
             _context.t0 = setShows;
-            _context.next = 3;
+            _context.next = 4;
             return (0, _api.getMovies)();
 
-          case 3:
+          case 4:
             _context.t1 = _context.sent;
             (0, _context.t0)(_context.t1);
+            _context.next = 11;
+            break;
 
-          case 5:
+          case 8:
+            _context.prev = 8;
+            _context.t2 = _context["catch"](0);
+            setIsError(true);
+
+          case 11:
+            setIsLoading(false);
+
+          case 12:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee);
+    }, _callee, null, [[0, 8]]);
   })), []);
   return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Header.default, null), /*#__PURE__*/_react.default.createElement(_SubHeader.default, {
     programType: "Movies"
-  }), /*#__PURE__*/_react.default.createElement("div", {
+  }), isError && /*#__PURE__*/_react.default.createElement("p", {
+    className: "content"
+  }, "Oops, something went wrong..."), /*#__PURE__*/_react.default.createElement("div", {
     className: "content tiles"
-  }, shows.map(function (show, index) {
+  }, isLoading && /*#__PURE__*/_react.default.createElement("p", null, "Loading..."), !isError && shows.map(function (show, index) {
     return /*#__PURE__*/_react.default.createElement(_Tile.default, {
       image: show.images['Poster Art'].url,
       title: show.title,
@@ -34227,7 +34250,7 @@ function Series(props) {
   })), []);
   return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Header.default, null), /*#__PURE__*/_react.default.createElement(_SubHeader.default, {
     programType: "Series"
-  }), isError && /*#__PURE__*/_react.default.createElement("div", {
+  }), isError && /*#__PURE__*/_react.default.createElement("p", {
     className: "content"
   }, "Oops, something went wrong..."), /*#__PURE__*/_react.default.createElement("div", {
     className: "content tiles"

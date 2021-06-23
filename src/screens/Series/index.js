@@ -28,7 +28,7 @@ function Series(props) {
             <Header />
             <SubHeader programType="Series" />
 
-            {isError && <div className="content">Oops, something went wrong...</div>}
+            {isError && <p className="content">Oops, something went wrong...</p>}
             <div className="content tiles">
                 {isLoading && <p>Loading...</p>}
                 {!isError && shows.map((show, index) => <Tile image={show.images['Poster Art'].url} title={show.title} key={index} to="/series" />)}
