@@ -29,6 +29,7 @@ or:
 
 ## Technical and architectural design rationale
 
+-   I chose to use parcel as the bundler as opposed to Webpack as it is more lightweight and there is less configuration needed
 -
 
 ## What I would do differently if I had more time and improvements that could've been made:

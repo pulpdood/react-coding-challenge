@@ -33849,7 +33849,7 @@ var links = [{
 function Footer(props) {
   return /*#__PURE__*/_react.default.createElement("footer", {
     className: "footer"
-  }, /*#__PURE__*/_react.default.createElement("div", null, links.map(function (link, index) {
+  }, links.map(function (link, index) {
     return /*#__PURE__*/_react.default.createElement(_react.Fragment, {
       key: index
     }, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
@@ -33883,7 +33883,7 @@ function Footer(props) {
   }), /*#__PURE__*/_react.default.createElement("img", {
     className: "storeIcon",
     src: require('../../assets/store/windows-store.svg')
-  }))));
+  })));
 }
 
 var _default = Footer;
