@@ -9,7 +9,7 @@ function Tile(props) {
         <div className="tile">
             <Link to={props.to}>
                 <div className="tileImageContainer">
-                    <img src={placeholder} style={{ position: 'absolute' }} />
+                    <img src={placeholder} className="tilePlaceholderImage" />
                     <img src={props.image} className="tileImage" />
                     <div className="overlayText">{props.overlayText}</div>
                 </div>

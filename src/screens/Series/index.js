@@ -5,13 +5,16 @@ import SubHeader from '../../components/SubHeader';
 import Tile from '../../components/Tile';
 
 import '../../styles.css';
-import { getFeed } from '../../api';
+import { getSeries } from '../../api';
 
 function Series(props) {
+    const [isLoading, setIsLoading] = React.useState(true);
     const [shows, setShows] = React.useState([]);
 
-    useEffect(() => {
-        setShows(getFeed());
+    useEffect(async () => {
+        setShows(await getSeries());
+
+        setIsLoading(false);
     }, []);
 
     return (
@@ -20,11 +23,10 @@ function Series(props) {
             <SubHeader programType="Series" />
 
             <div className="content tiles">
-                {shows
-                    .filter((show) => show.programType === 'series')
-                    .map((show) => (
-                        <Tile image={show.images['Poster Art'].url} title={show.title} />
-                    ))}
+                {isLoading && <p>Loading...</p>}
+                {shows.map((show) => (
+                    <Tile image={show.images['Poster Art'].url} title={show.title} />
+                ))}
             </div>
         </>
     );

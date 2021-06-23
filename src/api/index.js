@@ -1,7 +1,15 @@
-import feed from '../../feed/sample.json';
+const baseUrl = 'http://localhost:3001';
 
-export function getFeed() {
-    const shows = feed.entries;
+export async function getSeries() {
+    const response = await fetch(`${baseUrl}/series`);
+    const shows = await response.json();
+
+    return shows;
+}
+
+export async function getMovies() {
+    const response = await fetch(`${baseUrl}/movies`);
+    const shows = await response.json();
 
     return shows;
 }

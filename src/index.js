@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import Home from './screens/Home';
 import Movies from './screens/Movies';
 import Series from './screens/Series';
+import 'regenerator-runtime/runtime';
 
 const Application = () => (
     <Router>
