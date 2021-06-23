@@ -34,6 +34,7 @@ a {
 }
 
 .headerLogo {
+    color: #ffffff;
     font-size: 30px;
 }
 
@@ -52,11 +53,12 @@ a {
 }
 
 .overlayText {
-    display: flex;
     position: absolute;
+    display: flex;
     justify-content: center;
     align-items: center;
     color: white;
+    top: 45%;
 }
 
 .subHeader {
@@ -81,16 +83,24 @@ a {
 }
 
 .tileImageContainer {
+    position: absolute;
+    width: 100%;
+    top: 0;
+}
+
+.tilePlaceholderImage {
+    position: absolute;
+    top: 25%;
+}
+
+.tileContainer {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: #1f1f1f;
     width: 100%;
-    min-height: 250px;
-}
-
-.tilePlaceholderImage {
-    position: absolute;
+    padding-top: 150%;
 }
 
 @media screen and (max-width: 768px) {

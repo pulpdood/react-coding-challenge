@@ -19,8 +19,8 @@ function Movies(props) {
             <Header />
             <SubHeader programType="Movies" />
             <div className="content tiles">
-                {shows.map((show) => (
-                    <Tile image={show.images['Poster Art'].url} title={show.title} />
+                {shows.map((show, index) => (
+                    <Tile image={show.images['Poster Art'].url} title={show.title} key={index} to="/movies" />
                 ))}
             </div>
         </>

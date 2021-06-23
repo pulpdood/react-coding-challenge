@@ -33749,6 +33749,8 @@ exports.default = void 0;
 
 var _react = _interopRequireDefault(require("react"));
 
+var _reactRouterDom = require("react-router-dom");
+
 require("../styles.css");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -33756,9 +33758,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function Header(props) {
   return /*#__PURE__*/_react.default.createElement("header", {
     className: "headerContent header"
+  }, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
+    to: "/"
   }, /*#__PURE__*/_react.default.createElement("div", {
     className: "headerLogo"
-  }, "DEMO SCREENING"), /*#__PURE__*/_react.default.createElement("div", {
+  }, "DEMO SCREENING")), /*#__PURE__*/_react.default.createElement("div", {
     className: "headerRightActions"
   }, /*#__PURE__*/_react.default.createElement("div", null, "Login"), /*#__PURE__*/_react.default.createElement("button", {
     className: "headerTrialButton"
@@ -33767,7 +33771,7 @@ function Header(props) {
 
 var _default = Header;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","../styles.css":"styles.css"}],"components/SubHeader.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","react-router-dom":"../node_modules/react-router-dom/esm/react-router-dom.js","../styles.css":"styles.css"}],"components/SubHeader.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -33818,16 +33822,18 @@ function Tile(props) {
   }, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
     to: props.to
   }, /*#__PURE__*/_react.default.createElement("div", {
-    className: "tileImageContainer"
+    className: "tileContainer"
   }, /*#__PURE__*/_react.default.createElement("img", {
     src: _placeholder.default,
     className: "tilePlaceholderImage"
-  }), /*#__PURE__*/_react.default.createElement("img", {
-    src: props.image,
-    className: "tileImage"
   }), /*#__PURE__*/_react.default.createElement("div", {
     className: "overlayText"
-  }, props.overlayText)), /*#__PURE__*/_react.default.createElement("p", null, props.title)));
+  }, props.overlayText), /*#__PURE__*/_react.default.createElement("div", {
+    className: "tileImageContainer"
+  }, /*#__PURE__*/_react.default.createElement("img", {
+    src: props.image,
+    className: "tileImage"
+  }))), /*#__PURE__*/_react.default.createElement("p", null, props.title)));
 }
 
 var _default = Tile;
@@ -34020,10 +34026,12 @@ function Movies(props) {
     programType: "Movies"
   }), /*#__PURE__*/_react.default.createElement("div", {
     className: "content tiles"
-  }, shows.map(function (show) {
+  }, shows.map(function (show, index) {
     return /*#__PURE__*/_react.default.createElement(_Tile.default, {
       image: show.images['Poster Art'].url,
-      title: show.title
+      title: show.title,
+      key: index,
+      to: "/movies"
     });
   })));
 }
@@ -34078,40 +34086,59 @@ function Series(props) {
       isLoading = _React$useState2[0],
       setIsLoading = _React$useState2[1];
 
-  var _React$useState3 = _react.default.useState([]),
+  var _React$useState3 = _react.default.useState(false),
       _React$useState4 = _slicedToArray(_React$useState3, 2),
-      shows = _React$useState4[0],
-      setShows = _React$useState4[1];
+      isError = _React$useState4[0],
+      setIsError = _React$useState4[1];
+
+  var _React$useState5 = _react.default.useState([]),
+      _React$useState6 = _slicedToArray(_React$useState5, 2),
+      shows = _React$useState6[0],
+      setShows = _React$useState6[1];
 
   (0, _react.useEffect)( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            _context.prev = 0;
             _context.t0 = setShows;
-            _context.next = 3;
+            _context.next = 4;
             return (0, _api.getSeries)();
 
-          case 3:
+          case 4:
             _context.t1 = _context.sent;
             (0, _context.t0)(_context.t1);
+            _context.next = 11;
+            break;
+
+          case 8:
+            _context.prev = 8;
+            _context.t2 = _context["catch"](0);
+            setIsError(true);
+
+          case 11:
             setIsLoading(false);
 
-          case 6:
+          case 12:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee);
+    }, _callee, null, [[0, 8]]);
   })), []);
   return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Header.default, null), /*#__PURE__*/_react.default.createElement(_SubHeader.default, {
     programType: "Series"
-  }), /*#__PURE__*/_react.default.createElement("div", {
+  }), isError && /*#__PURE__*/_react.default.createElement("div", {
+    className: "content"
+  }, "Oops, something went wrong..."), /*#__PURE__*/_react.default.createElement("div", {
     className: "content tiles"
-  }, isLoading && /*#__PURE__*/_react.default.createElement("p", null, "Loading..."), shows.map(function (show) {
+  }, isLoading && /*#__PURE__*/_react.default.createElement("p", null, "Loading..."), !isError && shows.map(function (show, index) {
     return /*#__PURE__*/_react.default.createElement(_Tile.default, {
       image: show.images['Poster Art'].url,
-      title: show.title
+      title: show.title,
+      key: index,
+      to: "/series"
     });
   })));
 }

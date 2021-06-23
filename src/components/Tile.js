@@ -8,10 +8,12 @@ function Tile(props) {
     return (
         <div className="tile">
             <Link to={props.to}>
-                <div className="tileImageContainer">
+                <div className="tileContainer">
                     <img src={placeholder} className="tilePlaceholderImage" />
-                    <img src={props.image} className="tileImage" />
                     <div className="overlayText">{props.overlayText}</div>
+                    <div className="tileImageContainer">
+                        <img src={props.image} className="tileImage" />
+                    </div>
                 </div>
                 <p>{props.title}</p>
             </Link>

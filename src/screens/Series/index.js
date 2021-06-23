@@ -9,10 +9,15 @@ import { getSeries } from '../../api';
 
 function Series(props) {
     const [isLoading, setIsLoading] = React.useState(true);
+    const [isError, setIsError] = React.useState(false);
     const [shows, setShows] = React.useState([]);
 
     useEffect(async () => {
-        setShows(await getSeries());
+        try {
+            setShows(await getSeries());
+        } catch {
+            setIsError(true);
+        }
 
         setIsLoading(false);
     }, []);
@@ -22,11 +27,10 @@ function Series(props) {
             <Header />
             <SubHeader programType="Series" />
 
+            {isError && <div className="content">Oops, something went wrong...</div>}
             <div className="content tiles">
                 {isLoading && <p>Loading...</p>}
-                {shows.map((show) => (
-                    <Tile image={show.images['Poster Art'].url} title={show.title} />
-                ))}
+                {!isError && shows.map((show, index) => <Tile image={show.images['Poster Art'].url} title={show.title} key={index} to="/series" />)}
             </div>
         </>
     );
