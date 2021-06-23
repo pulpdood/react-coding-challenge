@@ -19,18 +19,26 @@ or:
 
 ## Running Application
 
-After installing dependencies, run the command:
+After installing dependencies, in one terminal run the command:
+
+    yarn serve
+
+Then in another run this command, which will run the app
 
     yarn start
 
-or:
+Otherwise you can run:
+
+    npm serve
+
+then
 
     npm start
 
 ## Technical and architectural design rationale
 
 -   I chose to use parcel as the bundler as opposed to Webpack as it is more lightweight and there is less configuration needed
--
+-   I chose yarn as I believe it is better in general, e.g. in one instance in my experience if a sub-dependency of a dependency has a security flaw, we can use resolutions to force the dependency to use a newer version of the sub-dependency
 
 ## What I would do differently if I had more time and improvements that could've been made:
 
@@ -40,4 +48,7 @@ or:
 -   Add a Layout.js file which wraps around the content and includes the header and footer and content in the middle
 -   Maybe putting the port and url of the backend into environment variables
 -   Added query parameters to the backend to allow for custom feed options, e.g. total number of results
--   Using a hand-written filter function for better performance
+-   Using custom array manipulation for faster performance
+-   Add a hamburger menu for mobile
+-   Maybe group CSS by logical groupings instead of sorting alphabetically
+-   Use CORS to only allow the app to call the backend

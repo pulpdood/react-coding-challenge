@@ -33846,7 +33846,7 @@ var links = [{
   text: 'Manage Account'
 }];
 
-function Footer(props) {
+function Footer() {
   return /*#__PURE__*/_react.default.createElement("footer", {
     className: "footer"
   }, links.map(function (link, index) {
@@ -33857,7 +33857,7 @@ function Footer(props) {
       className: "footerLink"
     }, link.text), index < links.length - 1 && /*#__PURE__*/_react.default.createElement("span", {
       style: {
-        color: '#ffffff',
+        color: '#a1a1a1',
         marginRight: '10px'
       }
     }, "|"));
@@ -33909,12 +33909,10 @@ var _placeholder = _interopRequireDefault(require("../../assets/placeholder.png"
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function Tile(props) {
-  return /*#__PURE__*/_react.default.createElement("div", {
-    className: "tile"
-  }, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
+  return /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
     to: props.to
   }, /*#__PURE__*/_react.default.createElement("div", {
-    className: "tileContainer"
+    className: "tile"
   }, /*#__PURE__*/_react.default.createElement("img", {
     src: _placeholder.default,
     className: "tilePlaceholderImage"
@@ -33925,7 +33923,7 @@ function Tile(props) {
   }, /*#__PURE__*/_react.default.createElement("img", {
     src: props.image,
     className: "tileImage"
-  }))), /*#__PURE__*/_react.default.createElement("p", null, props.title)));
+  }))), /*#__PURE__*/_react.default.createElement("p", null, props.title));
 }
 
 var _default = Tile;
@@ -35076,7 +35074,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57958" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64353" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

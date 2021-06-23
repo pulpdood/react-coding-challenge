@@ -6,18 +6,16 @@ import placeholder from '../../assets/placeholder.png';
 
 function Tile(props) {
     return (
-        <div className="tile">
-            <Link to={props.to}>
-                <div className="tileContainer">
-                    <img src={placeholder} className="tilePlaceholderImage" />
-                    <div className="overlayText">{props.overlayText}</div>
-                    <div className="tileImageContainer">
-                        <img src={props.image} className="tileImage" />
-                    </div>
+        <Link to={props.to}>
+            <div className="tile">
+                <img src={placeholder} className="tilePlaceholderImage" />
+                <div className="overlayText">{props.overlayText}</div>
+                <div className="tileImageContainer">
+                    <img src={props.image} className="tileImage" />
                 </div>
-                <p>{props.title}</p>
-            </Link>
-        </div>
+            </div>
+            <p>{props.title}</p>
+        </Link>
     );
 }
 

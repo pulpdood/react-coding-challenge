@@ -30,7 +30,7 @@ const links = [
     },
 ];
 
-function Footer(props) {
+function Footer() {
     return (
         <footer className="footer">
             {links.map((link, index) => (
@@ -38,7 +38,7 @@ function Footer(props) {
                     <Link to={link.to} className="footerLink">
                         {link.text}
                     </Link>
-                    {index < links.length - 1 && <span style={{ color: '#ffffff', marginRight: '10px' }}>|</span>}
+                    {index < links.length - 1 && <span style={{ color: '#a1a1a1', marginRight: '10px' }}>|</span>}
                 </Fragment>
             ))}
             <div className="copyright">Copyright © 2016 DEMO Streaming. All Rights Reserved.</div>
