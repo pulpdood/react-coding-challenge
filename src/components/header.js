@@ -7,7 +7,7 @@ function Header(props) {
     return (
         <header className="headerContent header">
             <Link to="/">
-                <div className="headerLogo">DEMO SCREENING</div>
+                <div className="headerLogo">DEMO STREAMING</div>
             </Link>
             <div className="headerRightActions">
                 <div>Login</div>

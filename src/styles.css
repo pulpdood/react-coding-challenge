@@ -2,6 +2,11 @@
     font-family: 'Roboto';
 }
 
+#root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 a {
     color: #000000;
     text-decoration: none;
@@ -12,14 +17,22 @@ a {
     padding: 20px 100px;
 }
 
+.copyright {
+    font-size: 12px;
+    color: #aaaaaa;
+    margin: 20px 0;
+}
+
 .footer {
-    padding: 50px 50px;
+    padding: 50px 100px;
+    margin-top: auto;
     background-color: #1f1f1f;
 }
+
 .footerLink {
     font-size: 14px;
-    color: #ffffff;
-    margin: 10px;
+    color: #a1a1a1;
+    margin-right: 10px;
 }
 
 .header {
@@ -74,11 +87,12 @@ a {
 .socialIcon {
     width: 30px;
     height: 30px;
-    margin: 10px;
+    margin-right: 20px;
+    margin-top: 10px;
 }
 
 .storeIcon {
-    height: 30px;
+    height: 40px;
     margin: 5px;
 }
 

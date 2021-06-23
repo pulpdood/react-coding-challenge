@@ -33762,7 +33762,7 @@ function Header(props) {
     to: "/"
   }, /*#__PURE__*/_react.default.createElement("div", {
     className: "headerLogo"
-  }, "DEMO SCREENING")), /*#__PURE__*/_react.default.createElement("div", {
+  }, "DEMO STREAMING")), /*#__PURE__*/_react.default.createElement("div", {
     className: "headerRightActions"
   }, /*#__PURE__*/_react.default.createElement("div", null, "Login"), /*#__PURE__*/_react.default.createElement("button", {
     className: "headerTrialButton"
@@ -33857,10 +33857,13 @@ function Footer(props) {
       className: "footerLink"
     }, link.text), index < links.length - 1 && /*#__PURE__*/_react.default.createElement("span", {
       style: {
-        color: '#ffffff'
+        color: '#ffffff',
+        marginRight: '10px'
       }
     }, "|"));
-  }), /*#__PURE__*/_react.default.createElement("div", null, "Copyright \xA9 2016 DEMO Streaming. All Rights Reserved."), /*#__PURE__*/_react.default.createElement("img", {
+  }), /*#__PURE__*/_react.default.createElement("div", {
+    className: "copyright"
+  }, "Copyright \xA9 2016 DEMO Streaming. All Rights Reserved."), /*#__PURE__*/_react.default.createElement("img", {
     className: "socialIcon",
     src: require('../../assets/social/facebook-white.svg')
   }), /*#__PURE__*/_react.default.createElement("img", {

@@ -39,11 +39,10 @@ function Footer(props) {
                         <Link to={link.to} className="footerLink">
                             {link.text}
                         </Link>
-                        {index < links.length - 1 && <span style={{ color: '#ffffff' }}>|</span>}
+                        {index < links.length - 1 && <span style={{ color: '#ffffff', marginRight: '10px' }}>|</span>}
                     </Fragment>
                 ))}
-                <div>Copyright © 2016 DEMO Streaming. All Rights Reserved.</div>
-
+                <div className="copyright">Copyright © 2016 DEMO Streaming. All Rights Reserved.</div>
                 <img className="socialIcon" src={require('../../assets/social/facebook-white.svg')} />
                 <img className="socialIcon" src={require('../../assets/social/instagram-white.svg')} />
                 <img className="socialIcon" src={require('../../assets/social/twitter-white.svg')} />
