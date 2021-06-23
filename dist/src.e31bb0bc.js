@@ -31900,440 +31900,138 @@ function createReactContext(defaultValue, calculateChangedBits) {
 var index = _react.default.createContext || createReactContext;
 var _default = index;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","@babel/runtime/helpers/esm/inheritsLoose":"../node_modules/@babel/runtime/helpers/esm/inheritsLoose.js","prop-types":"../node_modules/prop-types/index.js","tiny-warning":"../node_modules/tiny-warning/dist/tiny-warning.esm.js"}],"../node_modules/path-to-regexp/node_modules/isarray/index.js":[function(require,module,exports) {
-module.exports = Array.isArray || function (arr) {
-  return Object.prototype.toString.call(arr) == '[object Array]';
-};
-
-},{}],"../node_modules/path-to-regexp/index.js":[function(require,module,exports) {
-var isarray = require('isarray')
-
+},{"react":"../node_modules/react/index.js","@babel/runtime/helpers/esm/inheritsLoose":"../node_modules/@babel/runtime/helpers/esm/inheritsLoose.js","prop-types":"../node_modules/prop-types/index.js","tiny-warning":"../node_modules/tiny-warning/dist/tiny-warning.esm.js"}],"../node_modules/path-to-regexp/index.js":[function(require,module,exports) {
 /**
- * Expose `pathToRegexp`.
+ * Expose `pathtoRegexp`.
  */
-module.exports = pathToRegexp
-module.exports.parse = parse
-module.exports.compile = compile
-module.exports.tokensToFunction = tokensToFunction
-module.exports.tokensToRegExp = tokensToRegExp
+
+module.exports = pathtoRegexp;
 
 /**
- * The main path matching regexp utility.
+ * Match matching groups in a regular expression.
+ */
+var MATCHING_GROUP_REGEXP = /\((?!\?)/g;
+
+/**
+ * Normalize the given path string,
+ * returning a regular expression.
  *
- * @type {RegExp}
- */
-var PATH_REGEXP = new RegExp([
-  // Match escaped characters that would otherwise appear in future matches.
-  // This allows the user to escape special characters that won't transform.
-  '(\\\\.)',
-  // Match Express-style parameters and un-named parameters with a prefix
-  // and optional suffixes. Matches appear as:
-  //
-  // "/:test(\\d+)?" => ["/", "test", "\d+", undefined, "?", undefined]
-  // "/route(\\d+)"  => [undefined, undefined, undefined, "\d+", undefined, undefined]
-  // "/*"            => ["/", undefined, undefined, undefined, undefined, "*"]
-  '([\\/.])?(?:(?:\\:(\\w+)(?:\\(((?:\\\\.|[^\\\\()])+)\\))?|\\(((?:\\\\.|[^\\\\()])+)\\))([+*?])?|(\\*))'
-].join('|'), 'g')
-
-/**
- * Parse a string for the raw tokens.
+ * An empty array should be passed,
+ * which will contain the placeholder
+ * key names. For example "/user/:id" will
+ * then contain ["id"].
  *
- * @param  {string}  str
- * @param  {Object=} options
- * @return {!Array}
- */
-function parse (str, options) {
-  var tokens = []
-  var key = 0
-  var index = 0
-  var path = ''
-  var defaultDelimiter = options && options.delimiter || '/'
-  var res
-
-  while ((res = PATH_REGEXP.exec(str)) != null) {
-    var m = res[0]
-    var escaped = res[1]
-    var offset = res.index
-    path += str.slice(index, offset)
-    index = offset + m.length
-
-    // Ignore already escaped sequences.
-    if (escaped) {
-      path += escaped[1]
-      continue
-    }
-
-    var next = str[index]
-    var prefix = res[2]
-    var name = res[3]
-    var capture = res[4]
-    var group = res[5]
-    var modifier = res[6]
-    var asterisk = res[7]
-
-    // Push the current path onto the tokens.
-    if (path) {
-      tokens.push(path)
-      path = ''
-    }
-
-    var partial = prefix != null && next != null && next !== prefix
-    var repeat = modifier === '+' || modifier === '*'
-    var optional = modifier === '?' || modifier === '*'
-    var delimiter = res[2] || defaultDelimiter
-    var pattern = capture || group
-
-    tokens.push({
-      name: name || key++,
-      prefix: prefix || '',
-      delimiter: delimiter,
-      optional: optional,
-      repeat: repeat,
-      partial: partial,
-      asterisk: !!asterisk,
-      pattern: pattern ? escapeGroup(pattern) : (asterisk ? '.*' : '[^' + escapeString(delimiter) + ']+?')
-    })
-  }
-
-  // Match any characters still remaining.
-  if (index < str.length) {
-    path += str.substr(index)
-  }
-
-  // If the path exists, push it onto the end.
-  if (path) {
-    tokens.push(path)
-  }
-
-  return tokens
-}
-
-/**
- * Compile a string to a template function for the path.
- *
- * @param  {string}             str
- * @param  {Object=}            options
- * @return {!function(Object=, Object=)}
- */
-function compile (str, options) {
-  return tokensToFunction(parse(str, options), options)
-}
-
-/**
- * Prettier encoding of URI path segments.
- *
- * @param  {string}
- * @return {string}
- */
-function encodeURIComponentPretty (str) {
-  return encodeURI(str).replace(/[\/?#]/g, function (c) {
-    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
-  })
-}
-
-/**
- * Encode the asterisk parameter. Similar to `pretty`, but allows slashes.
- *
- * @param  {string}
- * @return {string}
- */
-function encodeAsterisk (str) {
-  return encodeURI(str).replace(/[?#]/g, function (c) {
-    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
-  })
-}
-
-/**
- * Expose a method for transforming tokens into the path function.
- */
-function tokensToFunction (tokens, options) {
-  // Compile all the tokens into regexps.
-  var matches = new Array(tokens.length)
-
-  // Compile all the patterns before compilation.
-  for (var i = 0; i < tokens.length; i++) {
-    if (typeof tokens[i] === 'object') {
-      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$', flags(options))
-    }
-  }
-
-  return function (obj, opts) {
-    var path = ''
-    var data = obj || {}
-    var options = opts || {}
-    var encode = options.pretty ? encodeURIComponentPretty : encodeURIComponent
-
-    for (var i = 0; i < tokens.length; i++) {
-      var token = tokens[i]
-
-      if (typeof token === 'string') {
-        path += token
-
-        continue
-      }
-
-      var value = data[token.name]
-      var segment
-
-      if (value == null) {
-        if (token.optional) {
-          // Prepend partial segment prefixes.
-          if (token.partial) {
-            path += token.prefix
-          }
-
-          continue
-        } else {
-          throw new TypeError('Expected "' + token.name + '" to be defined')
-        }
-      }
-
-      if (isarray(value)) {
-        if (!token.repeat) {
-          throw new TypeError('Expected "' + token.name + '" to not repeat, but received `' + JSON.stringify(value) + '`')
-        }
-
-        if (value.length === 0) {
-          if (token.optional) {
-            continue
-          } else {
-            throw new TypeError('Expected "' + token.name + '" to not be empty')
-          }
-        }
-
-        for (var j = 0; j < value.length; j++) {
-          segment = encode(value[j])
-
-          if (!matches[i].test(segment)) {
-            throw new TypeError('Expected all "' + token.name + '" to match "' + token.pattern + '", but received `' + JSON.stringify(segment) + '`')
-          }
-
-          path += (j === 0 ? token.prefix : token.delimiter) + segment
-        }
-
-        continue
-      }
-
-      segment = token.asterisk ? encodeAsterisk(value) : encode(value)
-
-      if (!matches[i].test(segment)) {
-        throw new TypeError('Expected "' + token.name + '" to match "' + token.pattern + '", but received "' + segment + '"')
-      }
-
-      path += token.prefix + segment
-    }
-
-    return path
-  }
-}
-
-/**
- * Escape a regular expression string.
- *
- * @param  {string} str
- * @return {string}
- */
-function escapeString (str) {
-  return str.replace(/([.+*?=^!:${}()[\]|\/\\])/g, '\\$1')
-}
-
-/**
- * Escape the capturing group by escaping special characters and meaning.
- *
- * @param  {string} group
- * @return {string}
- */
-function escapeGroup (group) {
-  return group.replace(/([=!:$\/()])/g, '\\$1')
-}
-
-/**
- * Attach the keys as a property of the regexp.
- *
- * @param  {!RegExp} re
- * @param  {Array}   keys
- * @return {!RegExp}
- */
-function attachKeys (re, keys) {
-  re.keys = keys
-  return re
-}
-
-/**
- * Get the flags for a regexp from the options.
- *
+ * @param  {String|RegExp|Array} path
+ * @param  {Array} keys
  * @param  {Object} options
- * @return {string}
+ * @return {RegExp}
+ * @api private
  */
-function flags (options) {
-  return options && options.sensitive ? '' : 'i'
-}
 
-/**
- * Pull out keys from a regexp.
- *
- * @param  {!RegExp} path
- * @param  {!Array}  keys
- * @return {!RegExp}
- */
-function regexpToRegexp (path, keys) {
-  // Use a negative lookahead to match only capturing groups.
-  var groups = path.source.match(/\((?!\?)/g)
-
-  if (groups) {
-    for (var i = 0; i < groups.length; i++) {
-      keys.push({
-        name: i,
-        prefix: null,
-        delimiter: null,
-        optional: false,
-        repeat: false,
-        partial: false,
-        asterisk: false,
-        pattern: null
-      })
-    }
-  }
-
-  return attachKeys(path, keys)
-}
-
-/**
- * Transform an array into a regexp.
- *
- * @param  {!Array}  path
- * @param  {Array}   keys
- * @param  {!Object} options
- * @return {!RegExp}
- */
-function arrayToRegexp (path, keys, options) {
-  var parts = []
-
-  for (var i = 0; i < path.length; i++) {
-    parts.push(pathToRegexp(path[i], keys, options).source)
-  }
-
-  var regexp = new RegExp('(?:' + parts.join('|') + ')', flags(options))
-
-  return attachKeys(regexp, keys)
-}
-
-/**
- * Create a path regexp from string input.
- *
- * @param  {string}  path
- * @param  {!Array}  keys
- * @param  {!Object} options
- * @return {!RegExp}
- */
-function stringToRegexp (path, keys, options) {
-  return tokensToRegExp(parse(path, options), keys, options)
-}
-
-/**
- * Expose a function for taking tokens and returning a RegExp.
- *
- * @param  {!Array}          tokens
- * @param  {(Array|Object)=} keys
- * @param  {Object=}         options
- * @return {!RegExp}
- */
-function tokensToRegExp (tokens, keys, options) {
-  if (!isarray(keys)) {
-    options = /** @type {!Object} */ (keys || options)
-    keys = []
-  }
-
-  options = options || {}
-
-  var strict = options.strict
-  var end = options.end !== false
-  var route = ''
-
-  // Iterate over the tokens and create our regexp string.
-  for (var i = 0; i < tokens.length; i++) {
-    var token = tokens[i]
-
-    if (typeof token === 'string') {
-      route += escapeString(token)
-    } else {
-      var prefix = escapeString(token.prefix)
-      var capture = '(?:' + token.pattern + ')'
-
-      keys.push(token)
-
-      if (token.repeat) {
-        capture += '(?:' + prefix + capture + ')*'
-      }
-
-      if (token.optional) {
-        if (!token.partial) {
-          capture = '(?:' + prefix + '(' + capture + '))?'
-        } else {
-          capture = prefix + '(' + capture + ')?'
-        }
-      } else {
-        capture = prefix + '(' + capture + ')'
-      }
-
-      route += capture
-    }
-  }
-
-  var delimiter = escapeString(options.delimiter || '/')
-  var endsWithDelimiter = route.slice(-delimiter.length) === delimiter
-
-  // In non-strict mode we allow a slash at the end of match. If the path to
-  // match already ends with a slash, we remove it for consistency. The slash
-  // is valid at the end of a path match, not in the middle. This is important
-  // in non-ending mode, where "/test/" shouldn't match "/test//route".
-  if (!strict) {
-    route = (endsWithDelimiter ? route.slice(0, -delimiter.length) : route) + '(?:' + delimiter + '(?=$))?'
-  }
-
-  if (end) {
-    route += '$'
-  } else {
-    // In non-ending mode, we need the capturing groups to match as much as
-    // possible by using a positive lookahead to the end or next path segment.
-    route += strict && endsWithDelimiter ? '' : '(?=' + delimiter + '|$)'
-  }
-
-  return attachKeys(new RegExp('^' + route, flags(options)), keys)
-}
-
-/**
- * Normalize the given path string, returning a regular expression.
- *
- * An empty array can be passed in for the keys, which will hold the
- * placeholder key descriptions. For example, using `/user/:id`, `keys` will
- * contain `[{ name: 'id', delimiter: '/', optional: false, repeat: false }]`.
- *
- * @param  {(string|RegExp|Array)} path
- * @param  {(Array|Object)=}       keys
- * @param  {Object=}               options
- * @return {!RegExp}
- */
-function pathToRegexp (path, keys, options) {
-  if (!isarray(keys)) {
-    options = /** @type {!Object} */ (keys || options)
-    keys = []
-  }
-
-  options = options || {}
+function pathtoRegexp(path, keys, options) {
+  options = options || {};
+  keys = keys || [];
+  var strict = options.strict;
+  var end = options.end !== false;
+  var flags = options.sensitive ? '' : 'i';
+  var extraOffset = 0;
+  var keysOffset = keys.length;
+  var i = 0;
+  var name = 0;
+  var m;
 
   if (path instanceof RegExp) {
-    return regexpToRegexp(path, /** @type {!Array} */ (keys))
+    while (m = MATCHING_GROUP_REGEXP.exec(path.source)) {
+      keys.push({
+        name: name++,
+        optional: false,
+        offset: m.index
+      });
+    }
+
+    return path;
   }
 
-  if (isarray(path)) {
-    return arrayToRegexp(/** @type {!Array} */ (path), /** @type {!Array} */ (keys), options)
+  if (Array.isArray(path)) {
+    // Map array parts into regexps and return their source. We also pass
+    // the same keys and options instance into every generation to get
+    // consistent matching groups before we join the sources together.
+    path = path.map(function (value) {
+      return pathtoRegexp(value, keys, options).source;
+    });
+
+    return new RegExp('(?:' + path.join('|') + ')', flags);
   }
 
-  return stringToRegexp(/** @type {string} */ (path), /** @type {!Array} */ (keys), options)
-}
+  path = ('^' + path + (strict ? '' : path[path.length - 1] === '/' ? '?' : '/?'))
+    .replace(/\/\(/g, '/(?:')
+    .replace(/([\/\.])/g, '\\$1')
+    .replace(/(\\\/)?(\\\.)?:(\w+)(\(.*?\))?(\*)?(\?)?/g, function (match, slash, format, key, capture, star, optional, offset) {
+      slash = slash || '';
+      format = format || '';
+      capture = capture || '([^\\/' + format + ']+?)';
+      optional = optional || '';
 
-},{"isarray":"../node_modules/path-to-regexp/node_modules/isarray/index.js"}],"../node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js":[function(require,module,exports) {
+      keys.push({
+        name: key,
+        optional: !!optional,
+        offset: offset + extraOffset
+      });
+
+      var result = ''
+        + (optional ? '' : slash)
+        + '(?:'
+        + format + (optional ? slash : '') + capture
+        + (star ? '((?:[\\/' + format + '].+?)?)' : '')
+        + ')'
+        + optional;
+
+      extraOffset += result.length - match.length;
+
+      return result;
+    })
+    .replace(/\*/g, function (star, index) {
+      var len = keys.length
+
+      while (len-- > keysOffset && keys[len].offset > index) {
+        keys[len].offset += 3; // Replacement length minus asterisk length.
+      }
+
+      return '(.*)';
+    });
+
+  // This is a workaround for handling unnamed matching groups.
+  while (m = MATCHING_GROUP_REGEXP.exec(path)) {
+    var escapeCount = 0;
+    var index = m.index;
+
+    while (path.charAt(--index) === '\\') {
+      escapeCount++;
+    }
+
+    // It's possible to escape the bracket.
+    if (escapeCount % 2 === 1) {
+      continue;
+    }
+
+    if (keysOffset + i === keys.length || keys[keysOffset + i].offset > m.index) {
+      keys.splice(keysOffset + i, 0, {
+        name: name++, // Unnamed matching groups must be consistently linear.
+        optional: false,
+        offset: m.index
+      });
+    }
+
+    i++;
+  }
+
+  // If the path is non-ending, match until the end or a slash.
+  path += (end ? '$' : (path[path.length - 1] === '/' ? '' : '(?=\\/|$)'));
+
+  return new RegExp(path, flags);
+};
+
+},{}],"../node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -33739,7 +33437,7 @@ var reloadCSS = require('_css_loader');
 
 module.hot.dispose(reloadCSS);
 module.hot.accept(reloadCSS);
-},{"_css_loader":"../node_modules/parcel-bundler/src/builtins/css-loader.js"}],"components/header.js":[function(require,module,exports) {
+},{"_css_loader":"../node_modules/parcel-bundler/src/builtins/css-loader.js"}],"components/Header.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -33753,32 +33451,21 @@ require("../styles.css");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 function Header(props) {
-  var _React$useState = _react.default.useState([]),
-      _React$useState2 = _slicedToArray(_React$useState, 2),
-      shows = _React$useState2[0],
-      setShows = _React$useState2[1];
-
   return /*#__PURE__*/_react.default.createElement("header", {
-    className: "header"
-  }, "DEMO SCREENING");
+    className: "headerContent header"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "headerLogo"
+  }, "DEMO SCREENING"), /*#__PURE__*/_react.default.createElement("div", {
+    className: "headerRightActions"
+  }, /*#__PURE__*/_react.default.createElement("div", null, "Login"), /*#__PURE__*/_react.default.createElement("button", {
+    className: "headerTrialButton"
+  }, "Start Your Free Trial")));
 }
 
 var _default = Header;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","../styles.css":"styles.css"}],"screens/home/index.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","../styles.css":"styles.css"}],"components/SubHeader.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -33788,7 +33475,112 @@ exports.default = void 0;
 
 var _react = _interopRequireDefault(require("react"));
 
-var _header = _interopRequireDefault(require("../../components/header"));
+require("../styles.css");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function SubHeader(props) {
+  var programType = props.programType;
+  return /*#__PURE__*/_react.default.createElement("header", {
+    className: "headerContent subHeader"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "programType"
+  }, programType));
+}
+
+var _default = SubHeader;
+exports.default = _default;
+},{"react":"../node_modules/react/index.js","../styles.css":"styles.css"}],"../assets/placeholder.png":[function(require,module,exports) {
+module.exports = "/placeholder.e41316ff.png";
+},{}],"components/Tile.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireDefault(require("react"));
+
+var _reactRouterDom = require("react-router-dom");
+
+require("../styles.css");
+
+var _placeholder = _interopRequireDefault(require("../../assets/placeholder.png"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function Tile(props) {
+  return /*#__PURE__*/_react.default.createElement("div", {
+    className: "tile"
+  }, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
+    to: props.to
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "tileImageContainer"
+  }, /*#__PURE__*/_react.default.createElement("img", {
+    src: _placeholder.default,
+    style: {
+      position: 'absolute'
+    }
+  }), /*#__PURE__*/_react.default.createElement("img", {
+    src: props.image,
+    className: "tileImage"
+  }), /*#__PURE__*/_react.default.createElement("div", {
+    className: "overlayText"
+  }, props.overlayText)), /*#__PURE__*/_react.default.createElement("p", null, props.title)));
+}
+
+var _default = Tile;
+exports.default = _default;
+},{"react":"../node_modules/react/index.js","react-router-dom":"../node_modules/react-router-dom/esm/react-router-dom.js","../styles.css":"styles.css","../../assets/placeholder.png":"../assets/placeholder.png"}],"screens/Home/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireDefault(require("react"));
+
+var _Header = _interopRequireDefault(require("../../components/Header"));
+
+var _SubHeader = _interopRequireDefault(require("../../components/SubHeader"));
+
+var _Tile = _interopRequireDefault(require("../../components/Tile"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function Home(props) {
+  return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Header.default, null), /*#__PURE__*/_react.default.createElement(_SubHeader.default, {
+    programType: "Popular Titles"
+  }), /*#__PURE__*/_react.default.createElement("div", {
+    className: "content tiles"
+  }, /*#__PURE__*/_react.default.createElement(_Tile.default, {
+    overlayText: "SERIES",
+    title: "Popular Series",
+    to: "/series"
+  }), /*#__PURE__*/_react.default.createElement(_Tile.default, {
+    overlayText: "MOVIES",
+    title: "Popular Movies",
+    to: "/movies"
+  })));
+}
+
+var _default = Home;
+exports.default = _default;
+},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js","../../components/Tile":"components/Tile.js"}],"screens/Movies/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireDefault(require("react"));
+
+var _Header = _interopRequireDefault(require("../../components/Header"));
+
+var _SubHeader = _interopRequireDefault(require("../../components/SubHeader"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -33804,18 +33596,1304 @@ function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Sy
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function Home(props) {
+function Movies(props) {
   var _React$useState = _react.default.useState([]),
       _React$useState2 = _slicedToArray(_React$useState, 2),
       shows = _React$useState2[0],
       setShows = _React$useState2[1];
 
-  return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_header.default, null), /*#__PURE__*/_react.default.createElement("h1", null, shows));
+  return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Header.default, null), /*#__PURE__*/_react.default.createElement(_SubHeader.default, {
+    programType: "Movies"
+  }), /*#__PURE__*/_react.default.createElement("h1", null, shows));
 }
 
-var _default = Home;
+var _default = Movies;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","../../components/header":"components/header.js"}],"index.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js"}],"../feed/sample.json":[function(require,module,exports) {
+module.exports = {
+  "total": 100,
+  "entries": [{
+    "title": "Wolf Creek",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/128/61/12861-PosterArt-ec32a81986a45eac7e080112075ab466.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "No Activity",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/106/36/10636-PosterArt-9add943c5e62c2d89f6d31458d33508a.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Billions",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/117/25/11725-PosterArt-deecf8dbd786dfa2d964413b0bf83726.jpg",
+        "width": 720,
+        "height": 1080
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Better Call Saul",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/175/7/1757-PosterArt-fc0e2a5b18d4a662717f3cbb1827871d.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Younger",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/143/24/14324-PosterArt-a0168953a3b93681dbd60c7bcc50a0af.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Ash vs Evil Dead",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/102/56/10256-PosterArt-1a57bf03033531becb18f2ad0c755f5a.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Transparent",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/108/7/1087-PosterArt-d19ff1330226ba26e4eb1def7a465f99.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "Power",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/512/1/5121-PosterArt-8957df8b3f89afc2809d068a9bf7f667.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "UnREAL",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/939/3/9393-PosterArt-6e5b82950cfce05fef0a50ff7a69474a.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "The Last Ship",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/197/7/1977-PosterArt-a2d3a9bb0ba1e05d26b29aed143715ce.jpg",
+        "width": 500,
+        "height": 750
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "The Girlfriend Experience",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/128/54/12854-PosterArt-683f17d4770e2f0febab93cf251bb1ee.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "11.22.63",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/120/40/12040-PosterArt-2a08532d986336771ea5a70658b6a957.jpg",
+        "width": 400,
+        "height": 600
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Roadies",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/132/42/13242-PosterArt-dfd9c3a0fa5db6e2e38b62e7fedcaf47.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Sherlock: The Abominable Bride",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/115/93/11593-PosterArt-33274b61ab0cb0e19cb7bff35824efb9.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "iZombie",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/197/5/1975-PosterArt-5c0ac7935dfb577df222814c2fbc1edb.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Containment",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/129/01/12901-PosterArt-b18cb05ecda13ea274c4e32a2d6ea427.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Flesh and Bone",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/102/57/10257-PosterArt-5846b1f514837b29477d566df3f713d2.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "The Circus: Inside The Greatest Political Show On Earth",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/133/40/13340-PosterArt-f5edb5d566e3d5375d7caad82e7839f5.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Community",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/109/3/1093-PosterArt-69b57818da7152ce84d22dc72513ae4e.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2009
+  }, {
+    "title": "Mozart in the Jungle",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/144/8/1448-PosterArt-0b4461ee688948ab6efa1ff2d22220df.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "Blunt Talk",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/127/71/12771-PosterArt-d79951a3a8662abf816e6446c2b725e0.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Angie Tribeca ",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/131/66/13166-PosterArt-d2a89999fa2d84015ba82a979e0ed796.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Deutschland 83",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/108/40/10840-PosterArt-a2fe05c4a0e1fdec049c8a35f8cd26a1.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Dice",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/128/02/12802-PosterArt-e0890393f2bf08c3da51479626c45134.jpeg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Billy & Billie",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/108/68/10868-PosterArt-84217c5c12e1d8747873d4ca916fbad5.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 0
+  }, {
+    "title": "Mad Dogs",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/127/72/12772-PosterArt-4217136f78c400592a91cb7a2f4f4bd6.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Gay for Play Game Show Starring RuPaul",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/143/61/14361-PosterArt-db21d9a7cd3362d1d9069d7c1d9aa554.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Acquitted",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/108/70/10870-PosterArt-c37e8232f327b27bc62043ea627ca528.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "The Following",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/197/3/1973-PosterArt-356d876eeca0713c592053c6283aa254.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2013
+  }, {
+    "title": "U2: Live in Paris",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/963/194/963194-PosterArt-9d1f4f28bb94e5e0f06e83d1216a8e30.jpg",
+        "width": 559,
+        "height": 828
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Trollied",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/173/2/1732-PosterArt-85cc2547b4aca4a5dd38e332f602a3c3.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2011
+  }, {
+    "title": "Gigolos",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/120/08/12008-PosterArt-fd5ad91e4054960b00e45e6d63b0c3c9.jpeg",
+        "width": 720,
+        "height": 1080
+      }
+    },
+    "releaseYear": 2011
+  }, {
+    "title": "Significant Mother",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/144/42/14442-PosterArt-26b21287841c80c0cafa1a668b5c747d.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Under The Gun",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/115/3873/1153873-PosterArt-93b3333a696042bf7da06b874af771d8.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "Lost Girl",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/109/2/1092-PosterArt-c79b7c95666d7792a3c60e4407962f81.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2010
+  }, {
+    "title": "Plonk",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/192/3/1923-PosterArt-f4aba43064f61d1668840c4d0df91565.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "Eye Candy",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/108/72/10872-PosterArt-25f67e1932dffe23acee016241ef2610.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "HAPPYish",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/119/98/11998-PosterArt-c937329b04129ead97d0503818b5e54a.jpg",
+        "width": 720,
+        "height": 1080
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Friends",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/198/3/1983-PosterArt-53b54be2659ca7905f56d67f6f3df803.jpg",
+        "width": 550,
+        "height": 825
+      }
+    },
+    "releaseYear": 1994
+  }, {
+    "title": "Mad Max: Fury Road",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/958/725/958725-PosterArt-96c5bbb6e15269f5b5cd9bc7801de1d9.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Twin Peaks",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/167/0/1670-PosterArt-9b61ff8d9260436f911665f1312742bd.jpg",
+        "width": 500,
+        "height": 750
+      }
+    },
+    "releaseYear": 1990
+  }, {
+    "title": "The Hunger Games",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/843/787/843787-PosterArt-dafc8872838e5d0f806c895b62134021.jpg",
+        "width": 800,
+        "height": 1200
+      }
+    },
+    "releaseYear": 2012
+  }, {
+    "title": "The Hunger Games: Catching Fire",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/843/788/843788-PosterArt-b4e53eeb7e3e560a93c4033f3c791945.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2013
+  }, {
+    "title": "The Hunger Games: Mockingjay - Part 1",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/376/199/376199-PosterArt-0929f0c32637703dc8ba857e81154bc9.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "The Hunger Games: Mockingjay - Part 2",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/109/8333/1098333-PosterArt-c72002fd42ec6f2cfc53004a59b432be.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Frasier",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/120/27/12027-PosterArt-3f8c0625d76d30c9a583c647e4c29c67.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 1994
+  }, {
+    "title": "San Andreas",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/958/726/958726-PosterArt-46061b8e3d5b4c8fd690d045ee524d0f.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Dexter",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/160/6/1606-PosterArt-8de75e6dae6678b82aa5093f204931aa.jpg",
+        "width": 671,
+        "height": 1007
+      }
+    },
+    "releaseYear": 2006
+  }, {
+    "title": "Paper Planes",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/376/206/376206-PosterArt-fc212c3beeab2c066977541a2312d732.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Beauty and the Beast",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/139/76/13976-PosterArt-6d33e74aa9ec685bf96a3e692521c3ae.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2012
+  }, {
+    "title": "Seinfeld",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/156/39/15639-PosterArt-4f0ab756eab01a0805b7bed4601b96ec.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 1989
+  }, {
+    "title": "Self/less",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/103/5943/1035943-PosterArt-24bf05e844865af039feafa36f0a87bd.jpg",
+        "width": 1400,
+        "height": 2100
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "Fringe",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/198/4/1984-PosterArt-284e8c935ea5f69e62fc1fc8bd17343f.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2008
+  }, {
+    "title": "How to Lose a Guy in 10 Days",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/382/999/98fe3aee68fff2ce6e008019c789e22e.jpg",
+        "width": 700,
+        "height": 1050
+      }
+    },
+    "releaseYear": 2003
+  }, {
+    "title": "RuPaul's Drag Race",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/915/4/9154-PosterArt-140aeb530d9e317778581855d31459db.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 0
+  }, {
+    "title": "The Time Traveler's Wife",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/418/042/d8548579cfa853a7c5bc8f155790a310.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2008
+  }, {
+    "title": "The Nanny",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/110/0/1100-PosterArt-28bef45866329f97901766f213b145ea.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 1993
+  }, {
+    "title": "The Best of Me",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/376/200/376200-PosterArt-0d02eaf47c7a9b050909420eb81ff569.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "The Case Of: JonBenet Ramsey",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/160/33/16033-PosterArt-3106fcae6ce5fbe338bc3ae82fc42b25.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2016
+  }, {
+    "title": "American Sniper",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/952/708/952708-PosterArt-d3beb37b66819c3f6281d7accc3020d6.jpg",
+        "width": 1400,
+        "height": 2100
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Geordie Shore",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/153/7/1537-PosterArt-57cb90d82c7f6a6b0c69752059c66e5b.jpg",
+        "width": 800,
+        "height": 1200
+      }
+    },
+    "releaseYear": 2011
+  }, {
+    "title": "Victoria ",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/119/2937/1192937-PosterArt-2f0c0a5bfaec9ce6e2662283f9c660b2.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Sicario",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/105/3102/1053102-PosterArt-54c83e37dfc1500b61ac3f37b3e062a4.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Hey Duggee",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/125/42/12542-PosterArt-4290c6751c88bc2384169dda62934e34.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "John Wick",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/376/201/376201-PosterArt-4f91ac739ae5147a51ae3abc78d55f2d.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "Freakonomics",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/371/739/371739-PosterArt-ba6bb08bb67b565aaa35ba59e15bdf7d.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2009
+  }, {
+    "title": "Troll Hunter",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/393/966/393966-PosterArt-72da04b296c0796a20540205eaa4fce0.jpg",
+        "width": 500,
+        "height": 750
+      }
+    },
+    "releaseYear": 2011
+  }, {
+    "title": "Spooks: The Greater Good",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/119/3835/1193835-PosterArt-faaba78b86d44c352d258d7189d485f6.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Inside The Human Body",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/128/10/12810-PosterArt-a3db21e3417f03062e9841da391ae8cc.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 0
+  }, {
+    "title": "Being Erica",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/100/3/1003-PosterArt-c9a263c56c91eb3e58a5e073e020c566.jpg",
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    "releaseYear": 2009
+  }, {
+    "title": "Jenny's Wedding",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/103/5939/1035939-PosterArt-8513e9e2dcfc6845adbd6d1fdd1a5f5f.jpg",
+        "width": 1400,
+        "height": 2100
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "Ringer",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/122/87/12287-PosterArt-19484385f08dd0d6b334779512c494a3.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2011
+  }, {
+    "title": "Life of Crime",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/118/0648/1180648-PosterArt-80d56bbb6635cff7a49ad2287711c378.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2013
+  }, {
+    "title": "The Carrie Diaries",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/198/9/1989-PosterArt-0aaf7d4d4d1014e393671c1c08365946.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2013
+  }, {
+    "title": "Drop Dead Diva",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/392/315/c90b83dbe5270d6560d0b908aa2090cf.jpg",
+        "width": 720,
+        "height": 1080
+      }
+    },
+    "releaseYear": 2009
+  }, {
+    "title": "Leon: The Professional",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/119/3838/1193838-PosterArt-7328f58d3e64953a540a3543a5cd5c39.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 1994
+  }, {
+    "title": "A Lego Brickumentary",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/109/8345/1098345-PosterArt-f0f207e02947ca76d9f9b238aea54dc1.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "The Inbetweeners",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/200/0/2000-PosterArt-835be2285f9301293d380db580f8ad96.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2008
+  }, {
+    "title": "Just Friends",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/375/664/375664-PosterArt-d11924fb0752525039b1168197030753.jpg",
+        "width": 500,
+        "height": 750
+      }
+    },
+    "releaseYear": 2005
+  }, {
+    "title": "Ernest & Celestine",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/928/838/928838-PosterArt-c3d8ac708b712062e519a3b106469595.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "Star Trek: Deep Space Nine",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/160/3/1603-PosterArt-53b8c03e1244053c1c58905dd6738e24.jpg",
+        "width": 1001,
+        "height": 1501
+      }
+    },
+    "releaseYear": 1993
+  }, {
+    "title": "Valiant",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/885/233/885233-PosterArt-e79ac1b3fbb5f8677094f5ae8adca301.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2005
+  }, {
+    "title": "The LA Complex",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/115/38/11538-PosterArt-3fa112d2e653653fcfc9fe39b34ae1df.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2012
+  }, {
+    "title": "Hannibal",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/109/1/1091-PosterArt-bbcf03acc18eebfc343754b05f39738f.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2013
+  }, {
+    "title": "The Voices",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/103/5938/1035938-PosterArt-4131ef088343f85d686806f2b80253c1.jpg",
+        "width": 1400,
+        "height": 2100
+      }
+    },
+    "releaseYear": 2013
+  }, {
+    "title": "Sex and the City 2",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/328/010/092e34afe0648a42cf12beb2d7557a65.jpg",
+        "width": 500,
+        "height": 750
+      }
+    },
+    "releaseYear": 2009
+  }, {
+    "title": "Nasty Baby",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/110/1174/1101174-PosterArt-c1fe5d416b9e410b8726893272e8711a.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "Tracers",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/958/724/958724-PosterArt-28f056d80c744f0ca9418250db9e4c61.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2015
+  }, {
+    "title": "The Shield",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/109/8/1098-PosterArt-5f2fbc7f02c02a525ab9f3e95008f3fc.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2002
+  }, {
+    "title": "The Review With Forrest MacNeil",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/126/88/12688-PosterArt-e8b36ef2902246538b9bbfdc380e5a3a.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "I Am Legend",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/375/797/375797-PosterArt-f456379f7c61bcd9c8f9fc781f4bce28.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2008
+  }, {
+    "title": "At Home With Julia",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/120/28/12028-PosterArt-0c087d1f4f12d21cda838f53cba2c8a5.jpg",
+        "width": 720,
+        "height": 1080
+      }
+    },
+    "releaseYear": 0
+  }, {
+    "title": "American Dreams",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/971/6/9716-PosterArt-d7983da60a5d146f87f0bf5b4939727a.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2002
+  }, {
+    "title": "How To Train Your Dragon",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/110/1196/1101196-PosterArt-c47d98ddca64ef18cf79c78d6ab8b3ad.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2010
+  }, {
+    "title": "Star Trek: Enterprise",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/120/02/12002-PosterArt-90648d08f69e94d44d6cb4de2cdda757.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 0
+  }, {
+    "title": "Ages Of Love",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/372/670/372670-PosterArt-0c1d61510fdf59ff32299038e669db44.jpg",
+        "width": 350,
+        "height": 525
+      }
+    },
+    "releaseYear": 2010
+  }, {
+    "title": "Prisoners",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/408/331/408331-PosterArt-75cb706fded100b4f28cc6b1a007fc1c.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2013
+  }, {
+    "title": "Almost Royal",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/124/27/12427-PosterArt-92cd41fc035a71a5e5f6cc7569b4266e.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "Danny Collins",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "movie",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/999/667/999667-PosterArt-65e6f88ede8bdcdad6d4d4f1549936ee.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2014
+  }, {
+    "title": "The Wrong Mans",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    "programType": "series",
+    "images": {
+      "Poster Art": {
+        "url": "https://streamcoimg-a.akamaihd.net/000/124/31/12431-PosterArt-f7d91329c70a7fa206e838423caa31bd.jpg",
+        "width": 1000,
+        "height": 1500
+      }
+    },
+    "releaseYear": 2013
+  }]
+};
+},{}],"api/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getFeed = getFeed;
+
+var _sample = _interopRequireDefault(require("../../feed/sample.json"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function getFeed() {
+  var shows = _sample.default.entries;
+  return shows;
+}
+},{"../../feed/sample.json":"../feed/sample.json"}],"screens/Series/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(require("react"));
+
+var _Header = _interopRequireDefault(require("../../components/Header"));
+
+var _SubHeader = _interopRequireDefault(require("../../components/SubHeader"));
+
+var _Tile = _interopRequireDefault(require("../../components/Tile"));
+
+require("../../styles.css");
+
+var _api = require("../../api");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function Series(props) {
+  var _React$useState = _react.default.useState([]),
+      _React$useState2 = _slicedToArray(_React$useState, 2),
+      shows = _React$useState2[0],
+      setShows = _React$useState2[1];
+
+  (0, _react.useEffect)(function () {
+    setShows((0, _api.getFeed)());
+  }, []);
+  return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Header.default, null), /*#__PURE__*/_react.default.createElement(_SubHeader.default, {
+    programType: "Series"
+  }), /*#__PURE__*/_react.default.createElement("div", {
+    className: "content tiles"
+  }, shows.filter(function (show) {
+    return show.programType === 'series';
+  }).map(function (show) {
+    return /*#__PURE__*/_react.default.createElement(_Tile.default, {
+      image: show.images['Poster Art'].url,
+      title: show.title
+    });
+  })));
+}
+
+var _default = Series;
+exports.default = _default;
+},{"react":"../node_modules/react/index.js","../../components/Header":"components/Header.js","../../components/SubHeader":"components/SubHeader.js","../../components/Tile":"components/Tile.js","../../styles.css":"styles.css","../../api":"api/index.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 var _react = _interopRequireDefault(require("react"));
@@ -33824,18 +34902,27 @@ var _reactDom = require("react-dom");
 
 var _reactRouterDom = require("react-router-dom");
 
-var _home = _interopRequireDefault(require("./screens/home"));
+var _Home = _interopRequireDefault(require("./screens/Home"));
+
+var _Movies = _interopRequireDefault(require("./screens/Movies"));
+
+var _Series = _interopRequireDefault(require("./screens/Series"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var Application = function Application() {
   return /*#__PURE__*/_react.default.createElement(_reactRouterDom.BrowserRouter, null, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Switch, null, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Route, {
-    path: "/"
-  }, /*#__PURE__*/_react.default.createElement(_home.default, null))));
+    path: "/",
+    exact: true
+  }, /*#__PURE__*/_react.default.createElement(_Home.default, null)), /*#__PURE__*/_react.default.createElement(_reactRouterDom.Route, {
+    path: "/series"
+  }, /*#__PURE__*/_react.default.createElement(_Series.default, null)), /*#__PURE__*/_react.default.createElement(_reactRouterDom.Route, {
+    path: "/movies"
+  }, /*#__PURE__*/_react.default.createElement(_Movies.default, null))));
 };
 
 (0, _reactDom.render)( /*#__PURE__*/_react.default.createElement(Application, null), document.getElementById('root'));
-},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","react-router-dom":"../node_modules/react-router-dom/esm/react-router-dom.js","./screens/home":"screens/home/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","react-router-dom":"../node_modules/react-router-dom/esm/react-router-dom.js","./screens/Home":"screens/Home/index.js","./screens/Movies":"screens/Movies/index.js","./screens/Series":"screens/Series/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -33863,7 +34950,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52812" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50797" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
