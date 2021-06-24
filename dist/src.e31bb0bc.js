@@ -33921,7 +33921,7 @@ function Tile(props) {
     className: "overlayText"
   }, props.overlayText), /*#__PURE__*/_react.default.createElement("div", {
     className: "tileImageContainer"
-  }, /*#__PURE__*/_react.default.createElement("img", {
+  }, props.image && /*#__PURE__*/_react.default.createElement("img", {
     src: props.image,
     className: "tileImage",
     alt: "tileImage"

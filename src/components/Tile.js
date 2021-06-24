@@ -11,7 +11,7 @@ function Tile(props) {
                 <img src={placeholder} className="tilePlaceholderImage" />
                 <div className="overlayText">{props.overlayText}</div>
                 <div className="tileImageContainer">
-                    <img src={props.image} className="tileImage" alt="tileImage" />
+                    {props.image && <img src={props.image} className="tileImage" alt="tileImage" />}
                 </div>
             </div>
             <p className="tileTitle">{props.title}</p>
