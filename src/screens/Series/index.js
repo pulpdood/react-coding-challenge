@@ -8,7 +8,7 @@ import Footer from '../../components/Footer';
 import '../../styles.css';
 import { getSeries } from '../../api';
 
-function Series(props) {
+function Series() {
     const [isLoading, setIsLoading] = React.useState(true);
     const [isError, setIsError] = React.useState(false);
     const [shows, setShows] = React.useState([]);

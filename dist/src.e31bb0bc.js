@@ -33755,7 +33755,7 @@ require("../styles.css");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function Header(props) {
+function Header() {
   return /*#__PURE__*/_react.default.createElement("header", {
     className: "headerContent header"
   }, /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
@@ -33910,6 +33910,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function Tile(props) {
   return /*#__PURE__*/_react.default.createElement(_reactRouterDom.Link, {
+    className: "tileLink",
     to: props.to
   }, /*#__PURE__*/_react.default.createElement("div", {
     className: "tile"
@@ -33922,8 +33923,11 @@ function Tile(props) {
     className: "tileImageContainer"
   }, /*#__PURE__*/_react.default.createElement("img", {
     src: props.image,
-    className: "tileImage"
-  }))), /*#__PURE__*/_react.default.createElement("p", null, props.title));
+    className: "tileImage",
+    alt: "tileImage"
+  }))), /*#__PURE__*/_react.default.createElement("p", {
+    className: "tileTitle"
+  }, props.title));
 }
 
 var _default = Tile;
@@ -33948,7 +33952,7 @@ var _Tile = _interopRequireDefault(require("../../components/Tile"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function Home(props) {
+function Home() {
   return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Header.default, null), /*#__PURE__*/_react.default.createElement(_SubHeader.default, {
     programType: "Popular Titles"
   }), /*#__PURE__*/_react.default.createElement("div", {
@@ -34090,7 +34094,7 @@ function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Sy
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function Movies(props) {
+function Movies() {
   var _React$useState = _react.default.useState(true),
       _React$useState2 = _slicedToArray(_React$useState, 2),
       isLoading = _React$useState2[0],
@@ -34140,7 +34144,7 @@ function Movies(props) {
   return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_Header.default, null), /*#__PURE__*/_react.default.createElement(_SubHeader.default, {
     programType: "Movies"
   }), isError && /*#__PURE__*/_react.default.createElement("p", {
-    className: "content"
+    className: "content error"
   }, "Oops, something went wrong..."), /*#__PURE__*/_react.default.createElement("div", {
     className: "content tiles"
   }, isLoading && /*#__PURE__*/_react.default.createElement("p", null, "Loading..."), !isError && shows.map(function (show, index) {
@@ -34199,7 +34203,7 @@ function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Sy
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function Series(props) {
+function Series() {
   var _React$useState = _react.default.useState(true),
       _React$useState2 = _slicedToArray(_React$useState, 2),
       isLoading = _React$useState2[0],
@@ -35015,12 +35019,15 @@ try {
   Function("r", "regeneratorRuntime = r")(runtime);
 }
 
-},{}],"index.js":[function(require,module,exports) {
+},{}],"App.js":[function(require,module,exports) {
 "use strict";
 
-var _react = _interopRequireDefault(require("react"));
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
 
-var _reactDom = require("react-dom");
+var _react = _interopRequireDefault(require("react"));
 
 var _reactRouterDom = require("react-router-dom");
 
@@ -35045,8 +35052,21 @@ var Application = function Application() {
   }, /*#__PURE__*/_react.default.createElement(_Movies.default, null))));
 };
 
-(0, _reactDom.render)( /*#__PURE__*/_react.default.createElement(Application, null), document.getElementById('root'));
-},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","react-router-dom":"../node_modules/react-router-dom/esm/react-router-dom.js","./screens/Home":"screens/Home/index.js","./screens/Movies":"screens/Movies/index.js","./screens/Series":"screens/Series/index.js","regenerator-runtime/runtime":"../node_modules/regenerator-runtime/runtime.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+var _default = Application;
+exports.default = _default;
+},{"react":"../node_modules/react/index.js","react-router-dom":"../node_modules/react-router-dom/esm/react-router-dom.js","./screens/Home":"screens/Home/index.js","./screens/Movies":"screens/Movies/index.js","./screens/Series":"screens/Series/index.js","regenerator-runtime/runtime":"../node_modules/regenerator-runtime/runtime.js"}],"index.js":[function(require,module,exports) {
+"use strict";
+
+var _react = _interopRequireDefault(require("react"));
+
+var _reactDom = require("react-dom");
+
+var _App = _interopRequireDefault(require("./App"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+(0, _reactDom.render)( /*#__PURE__*/_react.default.createElement(_App.default, null), document.getElementById('root'));
+},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","./App":"App.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -35074,7 +35094,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64353" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54914" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

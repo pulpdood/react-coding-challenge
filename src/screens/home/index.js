@@ -6,7 +6,7 @@ import Footer from '../../components/Footer';
 
 import Tile from '../../components/Tile';
 
-function Home(props) {
+function Home() {
     return (
         <>
             <Header />

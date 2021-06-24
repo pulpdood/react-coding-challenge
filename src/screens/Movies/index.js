@@ -8,7 +8,7 @@ import Footer from '../../components/Footer';
 import '../../styles.css';
 import { getMovies } from '../../api';
 
-function Movies(props) {
+function Movies() {
     const [isLoading, setIsLoading] = React.useState(true);
     const [isError, setIsError] = React.useState(false);
     const [shows, setShows] = React.useState([]);
@@ -27,7 +27,7 @@ function Movies(props) {
         <>
             <Header />
             <SubHeader programType="Movies" />
-            {isError && <p className="content">Oops, something went wrong...</p>}
+            {isError && <p className="content error">Oops, something went wrong...</p>}
             <div className="content tiles">
                 {isLoading && <p>Loading...</p>}
                 {!isError && shows.map((show, index) => <Tile image={show.images['Poster Art'].url} title={show.title} key={index} to="/movies" />)}

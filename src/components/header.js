@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import '../styles.css';
 
-function Header(props) {
+function Header() {
     return (
         <header className="headerContent header">
             <Link to="/">

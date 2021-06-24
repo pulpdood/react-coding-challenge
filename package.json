@@ -9,9 +9,17 @@
     "scripts": {
         "build": "parcel build src/index.html",
         "start": "parcel src/index.html --out-dir dist --open",
-        "serve": "node backend/index.js"
+        "serve": "node backend/index.js",
+        "test": "jest --runInBand ./tests"
     },
     "devDependencies": {
+        "@babel/core": "^7.14.6",
+        "@babel/preset-env": "^7.14.7",
+        "@babel/preset-react": "^7.14.5",
+        "@testing-library/jest-dom": "^5.14.1",
+        "@testing-library/react": "^12.0.0",
+        "@testing-library/user-event": "^13.1.9",
+        "jest": "^27.0.5",
         "parcel-bundler": "^1.12.5"
     },
     "dependencies": {
@@ -20,5 +28,12 @@
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
         "react-router-dom": "^5.2.0"
+    },
+    "jest": {
+        "testEnvironment": "jsdom",
+        "moduleNameMapper": {
+            "\\.(css|less|sass|scss)$": "<rootDir>/tests/mocks/styleMock.js",
+            "\\.(gif|ttf|eot|svg|png|jpg)$": "<rootDir>/tests/mocks/fileMock.js"
+        }
     }
 }
