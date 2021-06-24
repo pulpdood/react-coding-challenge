@@ -1,7 +1,7 @@
 {
     "name": "react-coding-challenge",
     "version": "1.0.0",
-    "description": "React Coding Challeng for Stan. - Kevin Yip",
+    "description": "React Coding Challenge for Stan. - Kevin Yip",
     "main": "dist/index.html",
     "repository": "git@github.com:pulpdood/react-coding-challenge.git",
     "author": "Kevin Yip <kevinyipeio@gmail.com>",
