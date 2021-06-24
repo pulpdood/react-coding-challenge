@@ -7,7 +7,7 @@
     "author": "Kevin Yip <kevinyipeio@gmail.com>",
     "license": "MIT",
     "scripts": {
-        "build": "parcel build src/index.html",
+        "build": "parcel build src/index.html --public-url ./",
         "start": "parcel src/index.html --out-dir dist --open",
         "serve": "node backend/index.js",
         "test": "jest --runInBand ./tests"

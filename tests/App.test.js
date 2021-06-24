@@ -53,9 +53,7 @@ describe('<App />', () => {
         await act(async () => await userEvent.click(seriesLink));
 
         expect(screen.getAllByText(/^Series$/i)[0]).toBeInTheDocument();
-        expect(screen.getAllByText(new RegExp(mockData.title))[0]).toBeInTheDocument();
-        expect(screen.getAllByText(new RegExp(mockData.description))[0]).toBeInTheDocument();
-        expect(screen.getAllByText(new RegExp(mockData.description))[0]).toBeInTheDocument();
+        expect(screen.getByText(new RegExp(mockData[0].title))).toBeInTheDocument();
         expect(screen.getByAltText('tileImage').src).toBe(mockData[0].images['Poster Art'].url);
     });
 });
