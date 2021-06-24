@@ -63,6 +63,7 @@ or
 -   Clean up CSS, especially the tileImage styles which are a bit hacky
 -   Need to ensure tests are following best practices as I am new to front-end testing
 -   Write more thorough tests
+-   Maybe combine Movies and Series page into one component with the programType as a prop
 
 ## Final thoughts
 
